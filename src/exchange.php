@@ -13,7 +13,7 @@ require dirname(__DIR__) . '\Exchanger.php';
 $server = \Ratchet\Server\IoServer::factory(
     new \Ratchet\Http\HttpServer(
         new \Ratchet\WebSocket\WsServer(
-        new Exchanger()
+            new Exchanger()
         )
     ),
     8080

@@ -30,7 +30,7 @@ class Exchanger implements MessageComponentInterface {
 //            , $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
         $data = json_decode($msg);
-        $response = json_encode(array('id'=>$from->resourceId, 'move'=>json_encode($data)));
+        $response = json_encode(array('id'=>$from->resourceId, 'move'=>array('x'=>$data->x, 'y'=>$data->y)));
 
         foreach ($this->clients as $client) {
             if ($from !== $client) {

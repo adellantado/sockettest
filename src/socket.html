@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body onload="onLoad(event)">
+
+<script>
+
+    var ctx;
+
+    //{pos: {x: int, y: int}, color: string}
+    var connected = {};
+    var play = false;
+
+    const radius = 4;
+
+    function onLoad(e) {
+
+        var canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        play = true;
+        console.log("onLoad");
+    }
+
+    function onMove(e) {
+        if (play) {
+            conn.send(JSON.stringify({x: e.x, y: e.y}));
+        }
+    }
+
+    function drawPosition(centerX, centerY, style) {
+        console.log("draw: "+centerX+", "+centerY);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+        ctx.fillStyle = style;
+        ctx.fill();
+    }
+
+    function clear(centerX, centerY) {
+        ctx.clearRect(centerX-radius, centerY-radius, 2*radius, 2*radius);
+    }
+
+
+
+    var conn = new WebSocket('ws://localhost:8080');
+    conn.onopen = function(e) {
+        console.log("Connection established!");
+    };
+
+    conn.onmessage = function(e) {
+
+        var command = JSON.parse(e.data);
+
+        console.log("received: "+ e.data);
+
+        var id = command["id"];
+
+        if (!connected[id]) {
+            var r = Math.floor(Math.random()*255);
+            var g = Math.floor(Math.random()*255);
+            var b = Math.floor(Math.random()*255);
+            connected[id] = {pos: {x:NaN,y:NaN}, color: "rgb("+r+","+g+","+b+")"};
+        }
+
+        if (command.hasOwnProperty("move")) {
+
+            var pos = connected[id].pos;
+            clear(pos.x, pos.y);
+            connected[id].pos = pos = command["move"];
+            drawPosition(pos.x, pos.y, connected[id].color);
+        }
+    };
+
+</script>
+
+<canvas id="canvas" width="500" height="500" onmousemove="onMove(event)"/>
+
+</body>
+</html>
