@@ -27,28 +27,64 @@
         console.log("onLoad");
     }
 
+    var tickerListeners = [];
     function tick() {
         sendAllowed = true;
         drawAllowed = true;
+        for (var i = 0, length = tickerListeners.length; i < length; i++) {
+            tickerListeners[i]();
+        }
     }
 
     function onMove(e) {
         if (playAllowed && sendAllowed) {
             sendAllowed = false;
-            conn.send(JSON.stringify({x: e.x, y: e.y}));
+            conn.send(JSON.stringify({move: {x: e.clientX, y: e.clientY}}));
         }
     }
 
-    function drawPosition(centerX, centerY, style) {
+    function onClick(e) {
+        if (playAllowed) {
+            conn.send(JSON.stringify({click: {x: e.clientX, y: e.clientY}}));
+        }
+    }
+
+    function drawPosition(centerX, centerY, style, rad) {
         console.log("draw: "+centerX+", "+centerY);
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+        ctx.arc(centerX, centerY, rad, 0, 2 * Math.PI, false);
         ctx.fillStyle = style;
         ctx.fill();
     }
 
     function clear(centerX, centerY) {
         ctx.clearRect(centerX-radius, centerY-radius, 2*radius, 2*radius);
+    }
+
+    function animClick(centerX, centerY, style) {
+
+        var rad = radius;
+        var step = 1;
+        var i = 0;
+        var maxRad = 4*radius;
+
+        var callback = function() {
+            i += step;
+            rad = radius + i;
+
+            if (maxRad < rad) {
+                tickerListeners.splice(tickerListeners.indexOf(callback), 1);
+                ctx.clearRect(centerX-rad, centerY-rad, 2*rad, 2*rad);
+                //drawPosition(centerX, centerY, style);
+                return;
+            }
+
+            drawPosition(centerX, centerY, style, rad);
+
+            drawPosition(centerX, centerY, 'rgb(255,255,255)', rad-step);
+
+        }
+        tickerListeners.push(callback);
     }
 
 
@@ -80,11 +116,12 @@
                 drawAllowed = false;
                 clear(pos.x, pos.y);
                 pos = command["move"];
-                drawPosition(pos.x, pos.y, connected[id].color);
+                drawPosition(pos.x, pos.y, connected[id].color, radius);
                 connected[id].pos = command["move"];
             }
-
-
+        } else if (command.hasOwnProperty("click")) {
+            var pos = command["click"];
+            animClick(pos.x, pos.y, connected[id].color);
         }
     };
 
@@ -92,7 +129,8 @@
 
 <canvas id="canvas" width="500" height="500"
         style="border: grey 3px solid"
-        onmousemove="onMove(event)"/>
+        onmousemove="onMove(event)"
+        onclick="onClick(event)"/>
 
 </body>
 </html>

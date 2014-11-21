@@ -29,8 +29,18 @@ class Exchanger implements MessageComponentInterface {
 //        echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n"
 //            , $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
-        $data = json_decode($msg);
-        $response = json_encode(array('id'=>$from->resourceId, 'move'=>array('x'=>$data->x, 'y'=>$data->y)));
+        $data = json_decode($msg, true);
+
+        if ($data["move"]) {
+            $pos = $data["move"];
+            $command = "move";
+        } else if ($data["click"]) {
+            $pos = $data["click"];
+            $command = "click";
+        }
+        $x = $pos["x"];
+        $y = $pos["y"];
+        $response = json_encode(array('id'=>$from->resourceId, $command=>array('x'=>$x, 'y'=>$y)));
 
         foreach ($this->clients as $client) {
             if ($from !== $client) {
