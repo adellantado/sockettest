@@ -5,26 +5,36 @@
 </head>
 <body onload="onLoad(event)">
 
+<script src="ticker.js"></script>
 <script>
 
     var ctx;
 
     //{pos: {x: int, y: int}, color: string}
     var connected = {};
-    var play = false;
-
     const radius = 4;
 
+    var playAllowed = false;
+    var drawAllowed = false;
+    var sendAllowed = false;
+    
     function onLoad(e) {
 
         var canvas = document.getElementById("canvas");
         ctx = canvas.getContext("2d");
-        play = true;
+        playAllowed = true;
+        run(50, tick);
         console.log("onLoad");
     }
 
+    function tick() {
+        sendAllowed = true;
+        drawAllowed = true;
+    }
+
     function onMove(e) {
-        if (play) {
+        if (playAllowed && sendAllowed) {
+            sendAllowed = false;
             conn.send(JSON.stringify({x: e.x, y: e.y}));
         }
     }
@@ -66,15 +76,23 @@
         if (command.hasOwnProperty("move")) {
 
             var pos = connected[id].pos;
-            clear(pos.x, pos.y);
-            connected[id].pos = pos = command["move"];
-            drawPosition(pos.x, pos.y, connected[id].color);
+            if (drawAllowed) {
+                drawAllowed = false;
+                clear(pos.x, pos.y);
+                pos = command["move"];
+                drawPosition(pos.x, pos.y, connected[id].color);
+                connected[id].pos = command["move"];
+            }
+
+
         }
     };
 
 </script>
 
-<canvas id="canvas" width="500" height="500" onmousemove="onMove(event)"/>
+<canvas id="canvas" width="500" height="500"
+        style="border: grey 3px solid"
+        onmousemove="onMove(event)"/>
 
 </body>
 </html>
