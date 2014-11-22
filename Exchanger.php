@@ -13,6 +13,9 @@ class Exchanger implements MessageComponentInterface {
 
     protected $clients;
 
+    const MOVE_COMMAND = "move";
+    const CLICK_COMMAND = "click";
+
     public function __construct() {
         $this->clients = new \SplObjectStorage();
     }
@@ -25,22 +28,24 @@ class Exchanger implements MessageComponentInterface {
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-//        $numRecv = count($this->clients) - 1;
-//        echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n"
-//            , $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
-
         $data = json_decode($msg, true);
 
-        if ($data["move"]) {
-            $pos = $data["move"];
-            $command = "move";
-        } else if ($data["click"]) {
-            $pos = $data["click"];
-            $command = "click";
+        $res = $res = array('id'=>$from->resourceId);
+
+        $move = $this::MOVE_COMMAND;
+        if (isset($data[$move])) {
+            $move_pos = $data[$move];
+            $res[$move] = array("x"=>$move_pos["x"], "y"=>$move_pos["y"]);
         }
-        $x = $pos["x"];
-        $y = $pos["y"];
-        $response = json_encode(array('id'=>$from->resourceId, $command=>array('x'=>$x, 'y'=>$y)));
+
+
+        $click = $this::CLICK_COMMAND;
+        if (!empty($data[$click])) {
+            $click_pos = $data[$click];
+            $res[$click] = array("x"=>$click_pos["x"], "y"=>$click_pos["y"]);
+        }
+
+        $response = json_encode($res, JSON_FORCE_OBJECT);
 
         foreach ($this->clients as $client) {
             if ($from !== $client) {
