@@ -2,11 +2,8 @@
  * Created by ader on 11/22/14.
  */
 
-this.SocketPromise = function() {
+this.SocketChain = function() {
 
-    if (!Promise) {
-        throw new Error("Promise are not supported in your browser!");
-    }
     if (!WebSocket) {
         throw new Error("WebSocket are not supported in your browser!");
     }
@@ -60,15 +57,15 @@ this.SocketPromise = function() {
     this.connect = function(host, port) {
         hst = host;
         prt = port;
-        return new ReactStream(runConnection);
+        return new Chain(runConnection);
     }
 
     this.listen = function() {
-        return new ReactStream(listenConnection);
+        return new Chain(listenConnection);
     }
 
     this.close = function() {
-        return new ReactStream(closeConnection);
+        return new Chain(closeConnection);
     }
 
     this.send = function(message) {
@@ -82,53 +79,6 @@ this.SocketPromise = function() {
         if (!conn) {
             throw new Error("Connection ain't established.");
         }
-    }
-
-}
-
-this.ReactStream = function(func) {
-
-    this.then = function(resolve, reject) {
-
-        var self = this;
-
-        var localResolve = function() {
-            var res = resolve.apply(self, arguments);
-
-            if (res instanceof ReactStream) {
-                return res;
-            }
-
-            return new ReactStream(function(resFunc, rejFunc){
-
-                try {
-                    resFunc(res);
-                } catch (e) {
-                    if (rejFunc)
-                        rejFunc(e);
-                }
-
-            });
-        }
-
-        if (reject) {
-
-            var localReject = function() {
-                reject.apply(self, arguments);
-            }
-
-            if (func)
-                func(localResolve, localReject);
-
-        } else {
-
-            if (func)
-                func(localResolve);
-
-        }
-
-        //return new ReactStream(function(){});
-
     }
 
 }

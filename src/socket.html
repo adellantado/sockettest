@@ -6,7 +6,8 @@
 <body onload="onLoad(event)">
 
 <script src="ticker.js"></script>
-<script src="SocketPromise.js"></script>
+<script src="Chain.js"></script>
+<script src="SocketChain.js"></script>
 <script>
 
     var ctx;
@@ -88,7 +89,7 @@
         tickerListeners.push(callback);
     }
 
-    var socket = new SocketPromise();
+    var socket = new SocketChain();
 
     socket.connect("localhost", 8080).then(function(){
         console.log("Connection established!");
@@ -100,7 +101,6 @@
         console.log("received: "+ data);
         return data;
     }).then(JSON.parse).then(function(command){
-
         var id = command["id"];
 
         if (!connected[id]) {
