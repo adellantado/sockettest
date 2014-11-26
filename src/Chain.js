@@ -70,8 +70,39 @@ this.Chain = function(func) {
 
     }
 
-    var nextSaved;
+    this.compose = function(outer, inner) {
+
+        resolveFunc = function(data) {
+
+            if (typeof data == 'function') {
+                outer = data;
+                data = null;
+            }
+
+            return outer(inner(data));
+        }
+
+        return next = new Chain();
+
+    }
+
+    this.carry = function(twoargs_func) {
+
+        resolveFunc = function(data) {
+
+            var a = data;
+
+            return function(b) {
+                return twoargs_func(a, b);
+            }
+        }
+
+        return next = new Chain();
+    }
+
     this.filter = function(filter) {
+
+        var nextSaved;
 
         resolveFunc = function(data) {
 
@@ -94,5 +125,39 @@ this.Chain = function(func) {
         return next = new Chain();
 
     }
+
+    this.execute = function() {
+
+        var args = arguments;
+
+        resolveFunc = function(data) {
+
+            var func;
+            if (typeof data == 'function') {
+                func = data;
+                return func.call(args);
+            }
+        }
+
+        return next = new Chain();
+
+    }
+
+
+    // Additional Functions
+    this.compose2 = function(twoargs_func, arg2) {
+
+        resolveFunc = function(data) {
+
+            return new Chain()
+                .carry(twoargs_func)
+                .execute(arg2);
+        }
+
+        return next = new Chain();
+
+    }
+
+
 
 }
