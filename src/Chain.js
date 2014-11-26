@@ -13,11 +13,22 @@ this.Chain = function(func) {
 
     var resolved;
 
+    this.setNext = function(chain) {
+        return next = chain;
+    }
+
     this.resolve = function(data) {
         var res;
         if (resolveFunc) {
             res = resolveFunc(data);
+
             resolved = true;
+
+            if (res instanceof Chain) {
+                res.setNext(next);
+                next = null;
+            }
+
         }
         if (next)
             next.resolve(res);
