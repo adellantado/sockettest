@@ -32,6 +32,8 @@ this.Chain = function(func) {
         }
         if (next)
             next.resolve(res);
+
+        return self;
     }
 
     this.reject = function(data) {
@@ -42,6 +44,8 @@ this.Chain = function(func) {
         }
         if (next)
             next.reject(res);
+
+        return self;
     }
 
     function runFunc() {
@@ -118,18 +122,21 @@ this.Chain = function(func) {
         resolveFunc = function(data) {
 
             var res = filter;
-            if (typeof filter == 'function')
+            if (typeof filter == 'function') {
                 res = filter(data);
+            }
 
-            if (!res)
+            if (!res) {
                 if (next) {
                     nextSaved = next;
                     next = null;
                 }
-            else if (!next) {
+            } else if (!next) {
                 next = nextSaved;
                 nextSaved = null;
             }
+
+            return data;
 
         }
 
